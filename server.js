@@ -1,6 +1,8 @@
+// Required Modules(libraries)
+require('dontevn').config();
 // this will get the express engine to work for our server
 const express = require("express");
-// I need all the credit I can get.
+// I need all the credit I can get. :)
 const handlerbars = require("express-handlebars");
 // this will use Body Parser to parse incoming request bodies before the handlers, available under the req.body property
 const bodyParser = require("body-parser");
@@ -12,9 +14,9 @@ const mongoose = require('mongoose');
 // trying to get in the habit of using ES6 lingo
 const PORT = 3000; 
 
-
+ 
 // this will make http requests from node.js and supports the Promise API, and automatic transforms for JSON data
-const axios = require("axios");
+const request = require("request");
 // this will parse markup and provides an API for using and changing the resulting data structure.
 const cheerio = require("cheerio");
 
@@ -22,10 +24,10 @@ const cheerio = require("cheerio");
 const dotenv = require("dotenv");
 
 //this will require any or all models I use
-var db = require("./models");
+const db = require("./models");
 
 //this will turn on the express engine 
-var app = express();
+const app = express();
 
 // use logger from morgan for logging requests
 app.use(logger("dev"));
@@ -38,8 +40,12 @@ app.use(bodyParser.urlencoded({
 // using express.static to serve the public folder as a static directory
 app.use (express.static("public"));
 
+// Handlebars again...
+app.engine("handlebars", exphbs({ defaultLayout: "main"}));
+app.set("view engine", "handlebars");
+
 // connecting to Mongo DB, but I'm not sure this will work just copying it...
-mongoose.connect("mongodb://localhost/populate", {
+mongoose.connect("mongodb://localhost/npr-scrapedb", {
     useNewUrlParser: true
 });
 
@@ -48,7 +54,7 @@ app.get("/scrape", function (req, res) {
     axios.get("https://www.npr.org/sections/news/").then(function(response) {
         //then we load that into cheerio and save it to $ for a shorthand selector
         var $ = cheerio.load(response.data);
-
+ 
         // I want to grab all the titles which are under h2.title on NPRs website
         $("h2.title").each(function(i, element) {
             //save them here {}
@@ -72,3 +78,9 @@ app.get("/scrape", function (req, res) {
         });
     });
 });
+
+
+//this will start the server
+app.listen(PORT, function() {
+    console.log("App running on port " + PORT + "!");
+  });
